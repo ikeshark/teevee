@@ -1,0 +1,171 @@
+body {width: 100vw; height: 100vh; background: black; margin: 0; overflow: hidden;}
+body, .wrapper {display: flex; justify-content: center; align-items: center; }
+@keyframes blur {
+  0% {filter: blur(0.01px)}
+  100% {filter: blur(0.5px)}
+}
+@keyframes glow {
+  0% {box-shadow: 0 0 5.75em white}
+  100% {box-shadow: 0 0 7.25em white}
+}
+@keyframes turnOn {
+  0% {box-shadow: 0 0 0 black; border-color: black;}
+  100% {box-shadow: 0 0 5.75em white; border-color: white;}
+}
+@keyframes tuneIn {
+  0%, 50% {opacity: 0}
+  100% {opacity: 1}
+}
+@keyframes glitch {
+  0% {opacity: 0}
+  100% {opacity: 0.45}
+}
+
+/* buttons */
+.buttonWrapper {
+  display: flex;
+  flex-direction: column;
+}
+button {
+  background: #253939;
+  color: white;
+  font-weight: bold;
+  margin: 20px;
+  font-size: 2.5em;
+  padding: 15px;
+}
+
+/* teevee screen wrapper */
+.wrapper {
+  border: 4px beige solid;
+  border-radius: 50% / 15px;
+  height: 550px;
+  overflow: hidden;
+  position: relative;
+  text-align: center;
+  width: 835px;
+}
+.tvOn {
+  box-shadow: 0 0 5.75em white;
+  animation-delay: 0s, 1s;
+  animation-direction: normal, alternate;
+  animation-duration: 0.95s, 2s;
+  animation-iteration-count: 1, infinite;
+  animation-name: turnOn, glow;
+  animation-timing-function: ease-in-out, linear;
+}
+
+/* channel number */
+.channel {
+  align-self: baseline;
+  animation-fill-mode: backwards;
+  color: lightgreen;
+  font-family: monospace;
+  font-size: 3.5em;
+  opacity: 0;
+  position: absolute;
+  right: 5%;
+  text-shadow: 0 0 8px white;
+  top: 6%;
+  z-index: 6;
+}
+.fadeOut {
+  animation: tuneIn reverse 4s;
+}
+
+/* NOISE */
+.noise, .noise2, .noise3 {
+  border-radius: 50% / 15px;
+  display: none;
+  height: 100%;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 100%;
+}
+.noise2, .noise3 {
+  animation-duration: 7ms;
+  animation-iteration-count: infinite;
+  animation-name: glitch;
+  filter: blur(1px);
+}
+.noise {
+  background: repeating-linear-gradient(black, black 2px, slategrey 2px, darkslategrey 4px);
+  opacity: .5;
+}
+.noise2 {
+  background: repeating-linear-gradient(55deg, #191919, #191919 .1%, black .1%, black .3%);
+  animation-direction: alternate;
+}
+.noise3 {
+  background: repeating-linear-gradient(-15deg, black, black .2%, darkslategrey .2%, darkslategrey .3%);
+  animation-direction: alternate-reverse;
+}
+
+/* teevee titles use h2 */
+h2 {display: none;}
+
+/* LAW AND ORDER */
+.lao {
+  color: white;
+  font-size: 10em;
+  text-shadow: -8px 0px 0px black, -12px 0px 0.4em lightblue, 0px 0px 1em blue;
+  text-transform: uppercase;
+}
+.lao span {
+  text-shadow: -8px 0px 0px black, -12px 0px 0.4em salmon, 0px 0px 1em red;
+}
+
+/* X-FILES */
+.xFiles {
+  color: white;
+  font-family: sans-serif;
+  transform: scaleY(5);
+  letter-spacing: 2.25rem;
+  font-size: 0.55em;
+  position: relative;
+}
+.xFiles::after {
+  content: '';
+  position: absolute;
+  background: white;
+  border-radius: 50%;
+  transform: skew(56deg);
+  height: 20vh;
+  width: 124px;
+  left: 234px;
+  top: -69px;
+  box-shadow: 0 0 6em 10px rgba(255,255,255, 0.5);
+  z-index: -2;
+  filter: drop-shadow(0 0 6em rgba(255,255,255, 0.9)) blur(10px);
+}
+.xFiles::before {
+  content: 'X';
+  font-weight: normal;
+  font-size: 26rem;
+  top: -182px;
+  left: 209px;
+  opacity: .8;
+  z-index: -1;
+  font-family: 'Special Elite', monospace;
+  transform: scale(1, .33);
+  color: black;
+  position: absolute;
+}
+.xFiles .black {
+  color: black;
+}
+.xFiles .circle {
+  position: relative;
+}
+.xFiles .circle::after {
+  position: absolute;
+  content: '';
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 1px solid white;
+  transform: scaleX(5);
+  top: -2px;
+  left: -3px;
+}
