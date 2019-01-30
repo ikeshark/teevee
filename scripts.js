@@ -5,10 +5,17 @@ var channelElem = document.querySelector('.channel');
 var channel = 3;
 var lao = document.querySelector('.lao');
 var xFiles = document.querySelector('.xFiles');
+var twinPeaks = document.querySelector('.twinPeaks');
+var twinPeaksBg = document.querySelector('.twinPeaksBg');
 var simpsons = document.querySelector('.simpsons');
 var wrapper = document.querySelector('.wrapper');
 var unloadChannel;
+let canvas;
+var temp;
 
+var twinPeaksBass = ["F2", [null, [null, "C2"]], "D2", [null, [null, "C2"]]];
+
+var twinPeaksSoprano = [null, "A4", null, null, null, "F4", null, null];
 // EFFECTS
 
 let verb = new Tone.Freeverb({
@@ -33,12 +40,20 @@ let delay = new Tone.FeedbackDelay({
 
 // INSTRUMENTS
 
+let cymbals = new Tone.MetalSynth({
+  'harmonicity': 12,
+  'resonance': 800,
+  'modulationIndex': 20,
+  'envelope': {'decay': 0.4},
+  'volume': -55
+}).toMaster();
+
 var noise = new Tone.Noise({
   "volume" : -20,
   "type" : "brown"
 }).toMaster();
 
-let drums = new Tone.MembraneSynth({
+let snare = new Tone.MembraneSynth({
   volume: -20,
   pitchDecay: 0.01,
   octaves: 10,
@@ -53,6 +68,17 @@ let drums = new Tone.MembraneSynth({
     attackCurve: "exponential"
   }
 }).connect(verb);
+
+let drums = new Tone.MembraneSynth({
+	"pitchDecay" : 0.008,
+	"octaves" : 2,
+  'volume': -10,
+	"envelope" : {
+		"attack" : 0.0006,
+		"decay" : 0.9,
+		"sustain" : 0.3
+	}
+}).toMaster();
 
 let mainMelody = new Tone.Synth({
   volume: -15,
@@ -109,6 +135,23 @@ let mainMelody2 = new Tone.Synth({
   portamento: 0.02
 }).connect(distortion);
 
+let mainMelody3 = new Tone.Synth({
+  volume: -18,
+  oscillator: {
+    type: "amtriangle",
+    harmonicity: 0.5,
+    modulationType: "square"
+  },
+  envelope: {
+    attackCurve: "exponential",
+    attack: 0.1,
+    decay: 0.4,
+    sustain: 0.4,
+    release: 2
+  },
+  portamento: 0.02
+}).connect(distortion);
+
 let bassMelody2 = new Tone.MonoSynth({
   volume: -18,
   oscillator: {
@@ -131,7 +174,7 @@ let bassMelody2 = new Tone.MonoSynth({
 }).toMaster();
 
 let newInst = new Tone.Synth({
-  volume: -14
+  volume: -18
 }).toMaster();
 
 let arp = new Tone.Synth({
@@ -157,6 +200,88 @@ function displaySimpsons() {
   document.querySelectorAll('.cloud').forEach(function(elem) {
     elem.style.display = 'block';
   });
+}
+
+function zigZag() {
+  let width = wrapper.offsetWidth;
+  let height = wrapper.offsetHeight;
+
+  let peak = 30;
+  let zagLength = (width) / peak;
+  zagLength++;
+  let numZags = 19;
+
+  canvas = document.querySelector("canvas");
+  let context = canvas.getContext("2d");
+  context.canvas.width = width;
+  context.canvas.height = height;
+  context.beginPath();
+  for (let i = 0; i < numZags; i++ ) {
+    let yOffset = i * peak;
+    context.moveTo(0, yOffset);
+    for (let j = 0; j < zagLength; j++ ) {
+      let x = peak * j;
+      let y = (j % 2 == 0) ? peak + yOffset : 0 + yOffset;
+      context.lineTo(x, y);
+    }
+  }
+  context.strokeStyle = "#2b120c";
+  context.lineWidth = 10;
+  context.stroke();
+}
+ zigZag();
+function displayTwinPeaks() {
+  Tone.Transport.bpm.value = 82;
+  twinPeaksBg.classList.remove('hide');
+  canvas.style.display = 'block';
+  twinPeaks.style.display = 'block';
+  let tenorPart = new Tone.Sequence(
+    function(time, note) {
+      newInst.triggerAttackRelease(note, "0:1", time);
+    }, [
+      "F2", "C3", "F3", "G3", "A3", "G3", "F3", "C3",
+      "D3", null, null, null, null, null, null, null
+    ], "8n").start();
+  let altoPart = new Tone.Sequence(
+    function(time, note) {
+      mainMelody2.triggerAttackRelease(note, "0:1", time);
+    }, [
+      "C4", "G4", null, "F4",
+      null, "E4", null, "D4"
+    ], "4n").start();
+  let sopranoPart = new Tone.Sequence(
+    function(time, note) {
+      mainMelody.triggerAttackRelease(note, "0:1", time);
+    }, twinPeaksSoprano, "4n").start();
+  let highC = new Tone.Sequence(
+    function(time, note) {
+      mainMelody3.triggerAttackRelease(note, "0:1", time);
+    }, [null, "C5", null, null, null, "A4", null, null], "4n").start();
+  let tenorOctUp = new Tone.Sequence(
+    function(time, note) {
+      arp.triggerAttackRelease(note, "1", time);
+    },[
+      "F4", "C5", "F5", "G5", "A5", "G5", "F5", "C5",
+      "D5", null, null, null, null, null, null, null
+    ], "8n").start();
+  arp.volume.value = -20;
+  delay.delayTime.value = .4;
+  temp = highC;
+
+  unloadChannel = function() {
+    twinPeaks.style.display = 'none';
+    twinPeaksBg.classList.add('hide');
+    canvas.style.display = 'none';
+    tenorOctUp.stop();
+    highC.stop();
+    sopranoPart.stop();
+    altoPart.stop();
+    tenorPart.stop();
+    arp.volume.value = -14;
+    delay.delayTime.value = 1;
+    Tone.Transport.stop();
+  };
+  Tone.Transport.start("+0.1");
 }
 
 function displayXFiles() {
@@ -187,9 +312,11 @@ function displayXFiles() {
       "F5", "Eb5", "F5", "Ab5",
       "F5", null, null, null
     ], "4n").start();
+  melody.mute = false;
 
   unloadChannel = function() {
     xFiles.style.display = 'none';
+    melody.mute = true;
     keyPart.stop();
     melody.stop();
     Tone.Transport.stop();
@@ -200,9 +327,15 @@ function displayXFiles() {
 function displayLAO() {
   lao.style.display = 'block';
   Tone.Transport.bpm.value = 116;
-  let drumPart = new Tone.Sequence(
+  var cymbalsPart = new Tone.Sequence(
+    function(time, freq) {
+			cymbals.frequency.setValueAtTime(freq, time, Math.random()*0.5 + 0.5);
+			cymbals.triggerAttack(time);
+		}, [300, 300, 300, 300, 300, 300, 300, 300, 200, 300, 300, 300], "8n").start();
+
+  let snarePart = new Tone.Sequence(
     function(time, note) {
-      drums.triggerAttackRelease(note, "0:0:1", time);
+      snare.triggerAttackRelease(note, "0:0:1", time);
     },[
       null, "G3", null, "G3",
       null, "G3", "G3", "G3",
@@ -210,6 +343,17 @@ function displayLAO() {
       null, "G3", null, "G3",
       null, "G3", "G3", "G3",
     ], "4n").start();
+
+    let drumPart = new Tone.Sequence(
+      function(time, note) {
+        drums.triggerAttackRelease(note, "0:1", time);
+      },[
+        "G2",
+        [null, [null, [null, "D2"]]],
+        "G2",
+        "G2",
+        [null, [null, [null, "D2"]]]
+      ], "1n").start();
 
   let keyPart1 = new Tone.Sequence(
     function(time, note) {
@@ -269,6 +413,8 @@ function displayLAO() {
   Tone.Transport.start("+0.1");
   unloadChannel = function() {
     drumPart.stop();
+    cymbalsPart.stop();
+    snarePart.stop();
     bassPart.stop();
     bass2Part.stop();
     keyPart1.stop();
@@ -297,13 +443,16 @@ function displayChannel() {
   wrapper.style.background = 'black';
   channelElem.classList.remove('fadeOut');
   displayStatic();
+  Tone.Master.mute = true;
   window.setTimeout(() => {
+
     unloadChannel();
     channelElem.innerHTML = '';
     var num = "0";
     num += channel;
     channelElem.innerHTML = num;
     channelElem.classList.add('fadeOut');
+    Tone.Master.mute = false;
     switch (channel) {
       case 3:
         displayStatic();
@@ -315,6 +464,9 @@ function displayChannel() {
         displayXFiles();
         break;
       case 6:
+        displayTwinPeaks();
+        break;
+      case 7:
        displayStatic();
     }
   }, 400);
@@ -334,14 +486,15 @@ function channelDown() {
 
 function turnOn() {
   if (on) {
-    Tone.Master.volume.rampTo(-Infinity, 0.05);
+    Tone.Master.mute = true;
+    // Tone.Master.volume.rampTo(-Infinity, 0.05);
     tvWrapper.classList.remove('tvOn');
     unloadChannel();
     wrapper.style.background = 'black';
     document.querySelector('.up').removeEventListener('click', channelUp);
     document.querySelector('.down').removeEventListener('click', channelDown);
   } else {
-    Tone.Master.volume.rampTo(0, 0.05);
+    Tone.Master.mute = false;
     document.querySelector('.up').addEventListener('click', channelUp);
     document.querySelector('.down').addEventListener('click', channelDown);
     tvWrapper.classList.add('tvOn');
